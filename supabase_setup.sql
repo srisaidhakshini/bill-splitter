@@ -108,7 +108,7 @@ CREATE POLICY "groups_select_member" ON public.groups FOR SELECT USING (created_
 CREATE POLICY "groups_insert_own" ON public.groups FOR INSERT WITH CHECK (auth.uid() = created_by);
 CREATE POLICY "groups_update_own" ON public.groups FOR UPDATE USING (auth.uid() = created_by);
 CREATE POLICY "groups_delete_own" ON public.groups FOR DELETE USING (auth.uid() = created_by);
-CREATE POLICY "group_members_select" ON public.group_members FOR SELECT USING (user_id = auth.uid() OR group_id IN (SELECT id FROM public.groups WHERE created_by = auth.uid()));
+CREATE POLICY "group_members_select" ON public.group_members FOR SELECT USING (auth.uid() IS NOT NULL);
 CREATE POLICY "group_members_insert" ON public.group_members FOR INSERT WITH CHECK (group_id IN (SELECT id FROM public.groups WHERE created_by = auth.uid()) OR user_id = auth.uid());
 CREATE POLICY "group_members_delete" ON public.group_members FOR DELETE USING (user_id = auth.uid() OR group_id IN (SELECT id FROM public.groups WHERE created_by = auth.uid()));
 CREATE POLICY "group_expenses_select" ON public.group_expenses FOR SELECT USING (EXISTS (SELECT 1 FROM public.group_members gm WHERE gm.group_id = group_expenses.group_id AND gm.user_id = auth.uid()) OR group_id IN (SELECT id FROM public.groups WHERE created_by = auth.uid()));
