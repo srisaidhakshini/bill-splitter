@@ -71,13 +71,6 @@ A web app to track personal expenses and split shared costs with friends and gro
 
 See [`.env.example`](./.env.example) for the full template.
 
-## Deployment
-
-Deploy to [Vercel](https://vercel.com) in one click:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
-
-Add your environment variables in the Vercel project settings before deploying.
 
 ## License
 
