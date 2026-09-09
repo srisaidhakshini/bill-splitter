@@ -1,23 +1,26 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { createClient } from '@/utils/supabase';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const bubbleContainerRef = useRef<HTMLDivElement>(null);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) router.replace('/dashboard');
+    });
+  }, [router]);
 
   // Bubble animation
   useEffect(() => {
     const container = bubbleContainerRef.current;
     if (!container) return;
-
     const createBubble = () => {
       const bubble = document.createElement('div');
       bubble.classList.add('bubble');
@@ -30,35 +33,31 @@ export default function LoginPage() {
       container.appendChild(bubble);
       setTimeout(() => bubble.remove(), 10000);
     };
-
     const interval = setInterval(createBubble, 800);
     return () => clearInterval(interval);
   }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleGoogleSignIn = async () => {
     setError('');
-
-    if (!email) { setError('Please enter your email address.'); return; }
-    if (!password) { setError('Please enter your password.'); return; }
-
     setLoading(true);
     const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
-
+    const { error: authError } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
     if (authError) {
-      setError(`Supabase Error: ${authError.message}`);
+      setError(authError.message);
       setLoading(false);
-    } else {
-      router.push('/dashboard');
     }
+    // On success, Supabase redirects the browser to Google — no further action needed
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
       <div className="ocean-bg">
         <div ref={bubbleContainerRef} />
-        {/* Wave decoration */}
         <div className="fixed bottom-0 left-0 w-full opacity-20 pointer-events-none">
           <svg viewBox="0 0 1440 320" className="w-full">
             <path d="M0,160L48,176C96,192,192,224,288,213.3C384,203,480,149,576,149.3C672,149,768,203,864,218.7C960,235,1056,213,1152,181.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L0,320Z" fill="#0058be" />
@@ -68,7 +67,7 @@ export default function LoginPage() {
 
       <main className="w-full max-w-md auth-card rounded-2xl p-8 md:p-10 relative z-10 animate-fade-in">
         {/* Brand Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#2170e4] text-white mb-4">
             <span className="material-symbols-outlined text-4xl">payments</span>
           </div>
@@ -76,58 +75,32 @@ export default function LoginPage() {
           <p className="text-[#424754] text-sm mt-2">Clear, equitable, and reliable finance for flatmates.</p>
         </div>
 
-        {/* Login Form */}
-        <form onSubmit={handleLogin} className="space-y-5" noValidate>
-          {/* Email */}
-          <div className="space-y-1.5">
-            <label htmlFor="email" className="block text-xs font-semibold text-[#424754] uppercase tracking-wider">
-              Email Address
-            </label>
-            <div className="relative group">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#424754] group-focus-within:text-[#0058be] transition-colors" style={{ fontSize: '20px' }}>mail</span>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="yourname@example.com"
-                className="form-input"
-                style={{ paddingLeft: '2.75rem' }}
-                autoComplete="email"
-              />
-            </div>
-          </div>
-
-          {/* Password */}
-          <div className="space-y-1.5">
-            <div className="flex justify-between items-center">
-              <label htmlFor="password" className="block text-xs font-semibold text-[#424754] uppercase tracking-wider">
-                Password
-              </label>
-            </div>
-            <div className="relative group">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#424754] group-focus-within:text-[#0058be] transition-colors" style={{ fontSize: '20px' }}>lock</span>
-              <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="form-input"
-                style={{ paddingLeft: '2.75rem', paddingRight: '3rem' }}
-                autoComplete="current-password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(v => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#424754] hover:text-[#0b1c30] transition-colors p-1"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
-                  {showPassword ? 'visibility_off' : 'visibility'}
-                </span>
-              </button>
-            </div>
-          </div>
+        {/* Google Sign-In */}
+        <div className="space-y-4">
+          <button
+            id="google-signin-btn"
+            onClick={handleGoogleSignIn}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-3 py-3.5 px-5 rounded-xl border border-[#e5eeff] bg-white text-[#0b1c30] font-semibold text-sm hover:bg-[#f8f9ff] hover:border-[#adc6ff] active:scale-[0.98] transition-all shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <>
+                <span className="material-symbols-outlined animate-spin text-xl text-[#0058be]">progress_activity</span>
+                Redirecting to Google…
+              </>
+            ) : (
+              <>
+                {/* Google logo SVG */}
+                <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+                Continue with Google
+              </>
+            )}
+          </button>
 
           {/* Error */}
           {error && (
@@ -136,36 +109,12 @@ export default function LoginPage() {
               <p className="text-[#93000a] text-sm">{error}</p>
             </div>
           )}
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[#0058be] text-white font-semibold py-4 rounded-xl shadow-lg hover:bg-[#0058be]/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
-          >
-            {loading ? (
-              <>
-                <span className="material-symbols-outlined animate-spin text-xl">progress_activity</span>
-                Signing in...
-              </>
-            ) : (
-              <>
-                Sign In
-                <span className="material-symbols-outlined text-xl">login</span>
-              </>
-            )}
-          </button>
-        </form>
-
-        {/* Sign up link */}
-        <div className="text-center mt-8 pt-6 border-t border-[#e5eeff]">
-          <p className="text-[#424754] text-sm">
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-[#0058be] font-bold hover:underline">
-              Create Account
-            </Link>
-          </p>
         </div>
+
+        {/* Footer note */}
+        <p className="text-center text-xs text-[#727785] mt-8">
+          By signing in, you agree to our terms. Your Google account name and photo will be used as your profile.
+        </p>
       </main>
     </div>
   );

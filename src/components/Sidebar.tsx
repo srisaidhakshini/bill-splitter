@@ -20,7 +20,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [user, setUser] = useState<{ email?: string; full_name?: string } | null>(null);
+  const [user, setUser] = useState<{ email?: string; full_name?: string; avatar_url?: string } | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -29,6 +29,7 @@ export default function Sidebar() {
         setUser({
           email: user.email,
           full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+          avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture,
         });
       }
     });
@@ -81,9 +82,19 @@ export default function Sidebar() {
       <div className="mt-auto px-4 pb-4 border-t border-white/10 pt-4">
         {user && (
           <div className="flex items-center gap-3 mb-3 px-2">
-            <div className="w-9 h-9 rounded-full bg-[#2170e4] flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-              {(user.full_name || 'U')[0].toUpperCase()}
-            </div>
+            {user.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={user.avatar_url}
+                alt={user.full_name || 'User'}
+                className="w-9 h-9 rounded-full object-cover flex-shrink-0 ring-2 ring-[#2170e4]"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-[#2170e4] flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                {(user.full_name || 'U')[0].toUpperCase()}
+              </div>
+            )}
             <div className="overflow-hidden flex-1">
               <p className="text-[#f8f9ff] text-sm font-semibold truncate">{user.full_name}</p>
               <p className="text-[10px] text-[#d3e4fe] opacity-60 truncate">{user.email}</p>
