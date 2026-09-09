@@ -72,14 +72,17 @@ export default function GroupsPage() {
     // Enrich with member count and total expenses
     const enriched = async (groups: Group[]) => {
       return Promise.all(groups.map(async g => {
-        const [membersRes, expensesRes] = await Promise.all([
+        const [authMembersRes, guestMembersRes, expensesRes] = await Promise.all([
           supabase.from('group_members').select('id', { count: 'exact' }).eq('group_id', g.id),
+          supabase.from('guest_members').select('id', { count: 'exact' }).eq('group_id', g.id),
           supabase.from('group_expenses').select('amount').eq('group_id', g.id),
         ]);
+        const memberCount = (authMembersRes.count || 0) + (guestMembersRes.count || 0);
         const totalExpenses = (expensesRes.data || []).reduce((s, e) => s + Number(e.amount), 0);
-        return { ...g, memberCount: membersRes.count || 0, totalExpenses };
+        return { ...g, memberCount, totalExpenses };
       }));
     };
+
 
     const [enrichedCreated, enrichedJoined] = await Promise.all([
       enriched(created || []),
