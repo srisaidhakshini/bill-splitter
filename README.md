@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 💸 Bill Splitter
+
+A web app to track personal expenses and split shared costs with friends and groups — no more messy WhatsApp threads or forgotten debts.
+
+## Features
+
+- **Personal Expense Tracking** — Log your own spending like a money diary
+- **Group Expenses** — Create groups, add members, and split costs automatically
+- **Smart Settlements** — The app calculates who owes who with minimal transactions
+- **Real-time Sync** — All members see expenses update instantly
+- **Authentication** — Secure sign up and login via Supabase Auth
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 15 (App Router) + React 19 |
+| Styling | Tailwind CSS |
+| Backend / Database | Supabase (PostgreSQL) |
+| Auth | Supabase Auth |
+| Hosting | Vercel |
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js 18+
+- A [Supabase](https://supabase.com) project
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Clone the repository**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   git clone https://github.com/your-username/bill-splitter.git
+   cd bill-splitter
+   ```
 
-## Learn More
+2. **Install dependencies**
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   npm install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Set up environment variables**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```bash
+   cp .env.example .env.local
+   ```
 
-## Deploy on Vercel
+   Fill in your Supabase project URL and anon key in `.env.local`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+4. **Set up the database**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   Run the SQL in [`supabase_setup.sql`](./supabase_setup.sql) in your Supabase SQL editor.
+
+5. **Start the development server**
+
+   ```bash
+   npm run dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Environment Variables
+
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anonymous (public) key |
+
+See [`.env.example`](./.env.example) for the full template.
+
+## Deployment
+
+Deploy to [Vercel](https://vercel.com) in one click:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
+
+Add your environment variables in the Vercel project settings before deploying.
+
+## License
+
+This project is licensed under the [MIT License](./LICENSE).
